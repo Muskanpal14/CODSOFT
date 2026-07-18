@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Paper Scissors - Ultimate Battle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .choice-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .choice-btn:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+
+        .pop-in {
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(400px) rotate(720deg); opacity: 0; }
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease-out;
+        }
+
+        .winner-glow {
+            animation: winnerPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes winnerPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(34, 197, 94, 0.4); }
+            50% { box-shadow: 0 0 60px rgba(34, 197, 94, 0.8); }
+        }
+
+        .loser-dim {
+            opacity: 0.4;
+            filter: grayscale(0.5);
+        }
+
+        .history-item {
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            transform: translateX(5px);
+            background: rgba(99, 102, 241, 0.05);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+        <!-- Main Game Card -->
+        <div class="glass-card rounded-3xl shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="bg-slate-900 text-white p-6 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10">
+                    <div class="absolute top-0 left-0 w-32 h-32 bg-white rounded-full -translate-x-16 -translate-y-16"></div>
+                    <div class="absolute bottom-0 right-0 w-40 h-40 bg-white rounded-full translate-x-20 translate-y-20"></div>
+                </div>
+                <h1 class="text-4xl font-black tracking-tight relative z-10">
+                    <span class="text-indigo-400">ROCK</span> 
+                    <span class="text-pink-400">PAPER</span> 
+                    <span class="text-amber-400">SCISSORS</span>
+                </h1>
+                <p class="text-slate-400 mt-2 text-sm font-medium">Choose wisely. Battle fiercely. Win gloriously.</p>
+            </div>
+
+            <div class="p-6 md:p-8">
+                <!-- Score Board -->
+                <div class="grid grid-cols-3 gap-4 mb-8">
+                    <div class="bg-blue-50 rounded-2xl p-4 text-center border-2 border-blue-100">
+                        <div class="text-xs font-bold text-blue-500 uppercase tracking-wider mb-1">You</div>
+                        <div id="userScore" class="text-4xl font-black text-blue-600">0</div>
+                        <div class="text-xs text-blue-400 mt-1">Wins</div>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-4 text-center border-2 border-slate-100">
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Rounds</div>
+                        <div id="roundCount" class="text-4xl font-black text-slate-700">0</div>
+                        <div class="text-xs text-slate-400 mt-1">Played</div>
+                    </div>
+                    <div class="bg-red-50 rounded-2xl p-4 text-center border-2 border-red-100">
+                        <div class="text-xs font-bold text-red-500 uppercase tracking-wider mb-1">Computer</div>
+                        <div id="compScore" class="text-4xl font-black text-red-600">0</div>
+                        <div class="text-xs text-red-400 mt-1">Wins</div>
+                    </div>
+                </div>
+
+                <!-- Win Probability Bar -->
+                <div class="mb-8 bg-slate-100 rounded-full h-4 overflow-hidden relative">
+                    <div id="winBar" class="progress-bar h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style="width: 50%"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span id="winPercent" class="text-xs font-bold text-slate-600">50% Win Rate</span>
+                    </div>
+                </div>
+
+                <!-- Battle Arena -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-center gap-6 md:gap-12 mb-6">
+                        <!-- Player Choice -->
+                        <div class="text-center">
+                            <div id="userChoiceBox" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-blue-100 border-4 border-blue-200 flex items-center justify-center text-5xl md:text-6xl transition-all duration-500 float">
+                                ❓
+                            </div>
+                            <p class="text-sm font-semibold text-blue-600 mt-2">You</p>
+                        </div>
+
+                        <!-- VS -->
+                        <div class="text-center">
+                            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center">
+                                <span class="text-white font-black text-xl">VS</span>
+                            </div>
+                        </div>
+
+                        <!-- Computer Choice -->
+                        <div class="text-center">
+                            <div id="compChoiceBox" class="w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-red-100 border-4 border-red-200 flex items-center justify-center text-5xl md:text-6xl transition-all duration-500">
+                                ❓
+                            </div>
+                            <p class="text-sm font-semibold text-red-600 mt-2">Computer</p>
+                        </div>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div id="resultArea" class="text-center min-h-[80px] flex items-center justify-center">
+                        <p class="text-slate-500 text-lg">Select your weapon below to begin the battle!</p>
+                    </div>
+                </div>
+
+                <!-- Choice Buttons -->
+                <div id="choiceButtons" class="grid grid-cols-3 gap-4 mb-6">
+                    <button onclick="playGame('rock')" class="choice-btn group p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50 flex flex-col items-center gap-3">
+                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">✊</span>
+                        <span class="text-lg font-bold text-slate-700 group-hover:text-indigo-600">Rock</span>
+                        <span class="text-xs text-slate-400">Crushes Scissors</span>
+                    </button>
+                    <button onclick="playGame('paper')" class="choice-btn group p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-pink-400 hover:bg-pink-50 flex flex-col items-center gap-3">
+                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">✋</span>
+                        <span class="text-lg font-bold text-slate-700 group-hover:text-pink-600">Paper</span>
+                        <span class="text-xs text-slate-400">Covers Rock</span>
+                    </button>
+                    <button onclick="playGame('scissors')" class="choice-btn group p-6 bg-white border-2 border-slate-200 rounded-2xl hover:border-amber-400 hover:bg-amber-50 flex flex-col items-center gap-3">
+                        <span class="text-5xl group-hover:scale-110 transition-transform duration-300">✌️</span>
+                        <span class="text-lg font-bold text-slate-700 group-hover:text-amber-600">Scissors</span>
+                        <span class="text-xs text-slate-400">Cuts Paper</span>
+                    </button>
+                </div>
+
+                <!-- Play Again Button -->
+                <div id="playAgainArea" class="hidden text-center mb-6">
+                    <button onclick="resetRound()" class="px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold text-lg hover:bg-slate-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1">
+                        🔄 Battle Again
+                    </button>
+                </div>
+
+                <!-- Game History -->
+                <div class="border-t border-slate-200 pt-6">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Battle History</h3>
+                    <div id="historyList" class="space-y-2 max-h-40 overflow-y-auto">
+                        <p class="text-sm text-slate-400 text-center py-4">No battles fought yet. Be the first!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-50 p-4 text-center border-t border-slate-200">
+                <p class="text-xs text-slate-400">
+                    ✊ Rock beats ✌️ Scissors &nbsp;•&nbsp; ✌️ Scissors beats ✋ Paper &nbsp;•&nbsp; ✋ Paper beats ✊ Rock
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti Container -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none overflow-hidden z-50"></div>
+
+    <script>
+        let scores = { user: 0, computer: 0, rounds: 0 };
+        let history = [];
+        const choices = ['rock', 'paper', 'scissors'];
+        const emojis = { rock: '✊', paper: '✋', scissors: '✌️' };
+        const choiceColors = { 
+            rock: { bg: 'bg-blue-100', border: 'border-blue-300', text: 'text-blue-600' },
+            paper: { bg: 'bg-pink-100', border: 'border-pink-300', text: 'text-pink-600' },
+            scissors: { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-600' }
+        };
+
+        function playGame(userChoice) {
+            const buttons = document.querySelectorAll('#choiceButtons button');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+
+            const userBox = document.getElementById('userChoiceBox');
+            const compBox = document.getElementById('compChoiceBox');
+
+            userBox.textContent = emojis[userChoice];
+            userBox.className = `w-24 h-24 md:w-32 md:h-32 rounded-2xl ${choiceColors[userChoice].bg} border-4 ${choiceColors[userChoice].border} flex items-center justify-center text-5xl md:text-6xl transition-all duration-500 pop-in`;
+
+            // Shuffle animation for computer
+            let shuffleCount = 0;
+            const shuffleInterval = setInterval(() => {
+                const randomChoice = choices[Math.floor(Math.random() * 3)];
+                compBox.textContent = emojis[randomChoice];
+                compBox.className = `w-24 h-24 md:w-32 md:h-32 rounded-2xl ${choiceColors[randomChoice].bg} border-4 ${choiceColors[randomChoice].border} flex items-center justify-center text-5xl md:text-6xl transition-all duration-200 shake`;
+                shuffleCount++;
+                if (shuffleCount >= 8) {
+                    clearInterval(shuffleInterval);
+                    finishGame(userChoice);
+                }
+            }, 80);
+        }
+
+        function finishGame(userChoice) {
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+            const compBox = document.getElementById('compChoiceBox');
+            const userBox = document.getElementById('userChoiceBox');
+
+            compBox.textContent = emojis[computerChoice];
+            compBox.className = `w-24 h-24 md:w-32 md:h-32 rounded-2xl ${choiceColors[computerChoice].bg} border-4 ${choiceColors[computerChoice].border} flex items-center justify-center text-5xl md:text-6xl transition-all duration-500 pop-in`;
+
+            let result, resultClass, resultText, resultIcon;
+
+            if (userChoice === computerChoice) {
+                result = 'tie';
+                resultClass = 'text-slate-600';
+                resultText = "It's a Tie!";
+                resultIcon = '🤝';
+                userBox.classList.add('bg-yellow-100', 'border-yellow-300');
+                compBox.classList.add('bg-yellow-100', 'border-yellow-300');
+            } else if (
+                (userChoice === 'rock' && computerChoice === 'scissors') ||
+                (userChoice === 'paper' && computerChoice === 'rock') ||
+                (userChoice === 'scissors' && computerChoice === 'paper')
+            ) {
+                result = 'win';
+                resultClass = 'text-green-600';
+                resultText = 'Victory!';
+                resultIcon = '🎉';
+                scores.user++;
+                userBox.classList.add('winner-glow');
+                compBox.classList.add('loser-dim');
+                createConfetti();
+            } else {
+                result = 'lose';
+                resultClass = 'text-red-600';
+                resultText = 'Defeat!';
+                resultIcon = '😔';
+                scores.computer++;
+                compBox.classList.add('winner-glow');
+                userBox.classList.add('loser-dim');
+            }
+
+            scores.rounds++;
+
+            // Update scores
+            document.getElementById('userScore').textContent = scores.user;
+            document.getElementById('compScore').textContent = scores.computer;
+            document.getElementById('roundCount').textContent = scores.rounds;
+
+            // Update win rate bar
+            const totalGames = scores.user + scores.computer;
+            const winRate = totalGames > 0 ? Math.round((scores.user / totalGames) * 100) : 50;
+            document.getElementById('winBar').style.width = winRate + '%';
+            document.getElementById('winPercent').textContent = winRate + '% Win Rate';
+
+            // Update result message
+            const resultEl = document.getElementById('resultArea');
+            resultEl.innerHTML = `
+                <div class="pop-in">
+                    <div class="text-3xl mb-2">${resultIcon}</div>
+                    <p class="${resultClass} text-2xl font-black">${resultText}</p>
+                    <p class="text-sm text-slate-500 mt-1">${emojis[userChoice]} ${userChoice.charAt(0).toUpperCase() + userChoice.slice(1)} vs ${emojis[computerChoice]} ${computerChoice.charAt(0).toUpperCase() + computerChoice.slice(1)}</p>
+                </div>
+            `;
+
+            // Add to history
+            history.unshift({
+                round: scores.rounds,
+                user: userChoice,
+                computer: computerChoice,
+                result: result
+            });
+            updateHistory();
+
+            // Show play again
+            document.getElementById('playAgainArea').classList.remove('hidden');
+            document.getElementById('choiceButtons').classList.add('hidden');
+        }
+
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            if (history.length === 0) {
+                historyList.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">No battles fought yet. Be the first!</p>';
+                return;
+            }
+
+            historyList.innerHTML = history.slice(0, 10).map(h => {
+                const resultColors = {
+                    win: 'text-green-600 bg-green-50',
+                    lose: 'text-red-600 bg-red-50',
+                    tie: 'text-slate-600 bg-slate-50'
+                };
+                const resultLabels = { win: 'WON', lose: 'LOST', tie: 'TIE' };
+                return `
+                    <div class="history-item flex items-center justify-between p-3 rounded-xl ${resultColors[h.result]}">
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs font-bold opacity-50">#${h.round}</span>
+                            <span class="text-lg">${emojis[h.user]}</span>
+                            <span class="text-sm font-semibold">vs</span>
+                            <span class="text-lg">${emojis[h.computer]}</span>
+                        </div>
+                        <span class="text-xs font-bold">${resultLabels[h.result]}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetRound() {
+            const userBox = document.getElementById('userChoiceBox');
+            const compBox = document.getElementById('compChoiceBox');
+
+            userBox.textContent = '❓';
+            compBox.textContent = '❓';
+            userBox.className = 'w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-blue-100 border-4 border-blue-200 flex items-center justify-center text-5xl md:text-6xl transition-all duration-500 float';
+            compBox.className = 'w-24 h-24 md:w-32 md:h-32 rounded-2xl bg-red-100 border-4 border-red-200 flex items-center justify-center text-5xl md:text-6xl transition-all duration-500';
+
+            document.getElementById('resultArea').innerHTML = '<p class="text-slate-500 text-lg">Select your weapon below!</p>';
+
+            document.getElementById('choiceButtons').classList.remove('hidden');
+            document.getElementById('playAgainArea').classList.add('hidden');
+
+            const buttons = document.querySelectorAll('#choiceButtons button');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+        }
+
+        function createConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#6366f1', '#ec4899', '#f59e0b', '#22c55e', '#3b82f6', '#ef4444'];
+
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.animationDuration = (2 + Math.random() * 2) + 's';
+                container.appendChild(confetti);
+
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+    </script>
+</body>
+</html>
