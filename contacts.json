@@ -1,0 +1,23 @@
+[
+    {
+        "name": "Alice Smith",
+        "phone": "+1 555-0142",
+        "email": "alice.smith@example.com",
+        "address": "123 Market Street, San Francisco, CA",
+        "category": "Work"
+    },
+    {
+        "name": "David Johnson",
+        "phone": "+1 555-0188",
+        "email": "david.j@techsolutions.io",
+        "address": "456 Tech Boulevard, Austin, TX",
+        "category": "Work"
+    },
+    {
+        "name": "Emily Davis",
+        "phone": "+1 555-0199",
+        "email": "emily.davis@family.net",
+        "address": "789 Oak Lane, Seattle, WA",
+        "category": "Family"
+    }
+]
